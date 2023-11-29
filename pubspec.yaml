@@ -37,15 +37,18 @@ dependencies:
   cupertino_icons: ^1.0.2
   get:
   dio:
+  json_annotation:
   top_snackbar_flutter: ^2.1.1
   lottie: ^1.4.1
+  uuid:
   internet_connection_checker: ^0.0.1+4
   liquid_pull_to_refresh: ^3.0.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
+  build_runner:
+  json_serializable:
   # The "flutter_lints" package below contains a set of recommended lints to
   # encourage good coding practices. The lint set provided by the package is
   # activated in the `analysis_options.yaml` file located at the root of your
@@ -83,10 +86,10 @@ flutter:
   fonts:
     - family: Poppins Regular
       fonts:
-        - asset: fonts/Poppins-Regular.ttf
+        - asset: font/Poppins-Regular.ttf
     - family: Poppins Medium
       fonts:
-        - asset: fonts/Poppins-Medium.ttf
+        - asset: font/Poppins-Medium.ttf
 
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages

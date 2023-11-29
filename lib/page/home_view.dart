@@ -6,228 +6,160 @@ import 'package:get/get.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:liquid_pull_to_refresh/liquid_pull_to_refresh.dart';
 import 'package:lottie/lottie.dart';
-import 'package:userlist/model/user_model.dart';
+import 'package:userlist/model/users.dart';
+import 'package:userlist/page/addUser.dart';
 import 'package:userlist/utils/constant.dart';
+import 'package:userlist/widgets/k_txt.dart';
 
 import '../controller/user_controller.dart';
 
 
-class HomeView extends StatelessWidget {
-  HomeView({Key? key}) : super(key: key);
+class HomePage extends StatefulWidget {
+  @override
+  State<HomePage> createState() => _HomePageState();
 
-  final UserController homeController = Get.put(UserController());
-  List<UserModel> users = UserModel.fromJsonToList(());
+}
+
+class _HomePageState extends State<HomePage> {
+  final userList_new = Get.put(UserController());
+  void initState() {
+    super.initState();
+    userList_new.scrollController.addListener(() {
+      if (userList_new.scrollController.position.atEdge) {
+        if (userList_new.scrollController.position.pixels == 0) {
+        } else {
+
+          print(userList_new.page.value);
+        }
+      }
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
+    userList_new.getAllUserData(context);
+
+
     return Scaffold(
-
-      extendBody: true,
-      backgroundColor: Colors.grey.shade900,
-      appBar: _buildAppBar(),
-      floatingActionButton: Obx(() =>
-      homeController.isInternetConnect.value ? _buildFAB(context) : Container()),
-      body: Obx(
-            () => SizedBox(
-          width: double.infinity,
-          height: double.infinity,
-          child: homeController.isInternetConnect.value
-              ? homeController.isLoading.value
-              ? _buildLoading()
-              : _buildMainBody(context)
-              : _buildNoInternetConnection(context),
+      drawer: Drawer(),
+      appBar: AppBar(
+        backgroundColor: Colors.pinkAccent,
+        title: KText(
+          text: 'Home Page',
+          fontSize: 18,
+          color: Colors.white,
         ),
+
       ),
+      body: Obx(
+            () => userList_new.user.isEmpty
+            ? const Center(child: CircularProgressIndicator())
+            : Padding(
+          padding: EdgeInsets.only(bottom: 50),
+          child: ListView.builder(
+            controller: userList_new.scrollController,
+            physics: BouncingScrollPhysics(),
+            primary: false,
+            shrinkWrap: true,
+            itemCount: userList_new.user.length,
+            scrollDirection: Axis.vertical,
+            itemBuilder: (BuildContext context, int index) {
+              final userList = userList_new.user[index];
 
-    );
-  }
+              return GestureDetector(
 
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    vertical: 10,
+                    horizontal: 10,
+                  ),
+                  child: userList_new.user.isEmpty
+                      ? const Center(
+                    child: CircularProgressIndicator(),
+                  )
+                      : Container(
+                    // height: 200,
+                    width: Get.width,
+                    decoration: BoxDecoration(
+                      color: Colors.grey,
+                      // color: HexColor('${item['color']}'),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 10,
+                      ),
+                      child: Row(
+                        mainAxisAlignment:
+                        MainAxisAlignment.spaceBetween,
+                        crossAxisAlignment:
+                        CrossAxisAlignment.center,
+                        children: [
+                          ClipRRect(
+                              borderRadius:
+                              BorderRadius.circular(64),
+                              child: Image.network(
+                                userList.avatar,
+                                scale: 1,
+                              )),
+                          SizedBox(width: 10),
+                          Column(
+                            mainAxisAlignment:
+                            MainAxisAlignment.center,
+                            crossAxisAlignment:
+                            CrossAxisAlignment.start,
+                            children: [
+                              Row(
+                                children: [
+                                  KText(
+                                    text: userList.first_name,
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                  ),
+                                  KText(
+                                    text: userList.last_name,
+                                    color: Colors.white,
+                                    fontSize: 18,
+                                  ),
+                                ],
+                              ),
+                              KText(
+                                text: userList.email,
+                                color: Colors.white,
+                                fontSize: 12,
+                              ),
+                            ],
+                          ),
+                          SizedBox(width: 10),
 
-  /// AppBar
-  AppBar _buildAppBar() {
-    return AppBar(
-      backgroundColor: Colors.indigo,
-      centerTitle: true,
-      title: const Text("ListUser"),
-    );
-  }
-
-  /// Floating Action Button
-  Widget _buildFAB(BuildContext context) {
-    return FloatingActionButton(
-      onPressed: () {
-
-        createAlertDialog(context).then((onValue) {
-          users.add(UserModel(
-              id: 1,
-              avatar: "",
-              first_name: " ",
-              last_name: " ",
-              email: "",
-              ));
-
-        });
-        createAlertDialog(context).then((onValue) {
-          users.add(onValue);
-
-        });
-      },
-      backgroundColor: Colors.indigo,
-      child: const Icon(  Icons.add,)
-    );
-  }
-
-  /// When Internet is't Okay, show this widget
-  Widget _buildNoInternetConnection(BuildContext context) {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          SizedBox(
-            width: 180,
-            height: 180,
-            child: Lottie.asset('assets/b.json'),
-          ),
-          MaterialButton(
-            minWidth: 130,
-            height: 45,
-            onPressed: () => _materialOnTapButton(context),
-            shape:
-            RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-            color: Colors.grey,
-            child: const Text(
-              "Try Again",
-              style: TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16),
-            ),
-          )
-        ],
-      ),
-    );
-  }
-
-  /// Main Body
-  Widget _buildMainBody(BuildContext context) {
-    return LiquidPullToRefresh(
-      color: Colors.blue,
-      showChildOpacityTransition: true,
-      onRefresh: () {
-        return homeController.getAllUserData(context);
-      },
-      child: ListView.builder(
-        controller: homeController.getAllUserData(context),
-        physics: const BouncingScrollPhysics(),
-        itemCount: homeController.user.length,
-        itemBuilder: (context, index) {
-          return InkWell(
-            onTap: () {
-
-            },
-            child: Card(
-              color: Colors.white,
-              child: ListTile(
-                leading: CircleAvatar(
-                  radius: 30.0,
-                  backgroundImage:
-                  NetworkImage("${homeController.user[index].avatar.toString()}"),
-                  backgroundColor: Colors.transparent,
-                  child: Center(
-                    child: Text(
-                      homeController.user[index].first_name.toString() ,
-                      style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 19,
-                          color: Colors.grey),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-                title: Text(
-                  homeController.user[index].last_name.toString(),
-                  style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 19,
-                      color: Colors.grey),
-                ),
-                subtitle: Text(
-                  homeController.user[index].email,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w300,
-                    fontSize: 16,
-                    color: Colors.grey,
-                  ),
-                ),
-              ),
-            ),
-          );
-        },
-      ),
-    );
-  }
-
-  /// Loading Widget
-  Widget _buildLoading() {
-    return const Center(
-      child: SizedBox(
-          width: 150,
-          height: 150,
-          child: Center(
-            child: CupertinoActivityIndicator(
-              color: Colors.white,
-            ),
-          )),
-    );
-  }
-
-  /// onTap Func of "Try Again Button"
-  void _materialOnTapButton(BuildContext context) async {
-    if (await InternetConnectionChecker().hasConnection == true) {
-      homeController.getAllUserData(context);
-    } else {
-      showCustomSnackBar(context: context);
-    }
-  }
-}
-
-Future<UserModel> createAlertDialog(BuildContext context) async {
-  TextEditingController customController = TextEditingController();
-
-  UserModel user = UserModel(
-      avatar: '', first_name: "", last_name: "", email: "", id:1 );
-  return await showDialog(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Name of the User"),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                onChanged: (value) {
-                  user.id = value as int;
-                },
-              ),
-              TextField(
-                onChanged: (value) {
-                  user.first_name = value;
-                },
-              ),
-              TextField(
-                onChanged: (value) {
-                  user.last_name = value;
-                },
-              ),
-            ],
+              );
+            },
           ),
-          actions: <Widget>[
-            MaterialButton(
-                elevation: 5.0,
-                child: const Text("OK"),
-                onPressed: () {
-                  Navigator.of(context).pop(user);
-                })
-          ],
-        );
-      });
+        ),
+      ),
+      floatingActionButton: FloatingActionButton(onPressed: () {  setState(() {
+       Get.to(AddUserDataPage());
+
+
+      });  },
+         backgroundColor: Colors.pinkAccent,  child: const Icon(  Icons.add,))
+    //   ),),
+      // floatingActionButton: Obx(() => userList_new.isLoading.value
+      //     ? FloatingActionButton(
+      //   onPressed: () {},
+      //   child: CircularProgressIndicator(
+      //     backgroundColor: Colors.black,
+      //   ),
+      // )
+      //     : SizedBox()),
+    );
+  }
 }
+
+
